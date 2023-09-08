@@ -6,7 +6,7 @@ import tqdm
 import json
 import math
 
-FOLDER = "logs"
+FOLDER = "../RobotCode2023/logs"
 WHEEL_RADIUS = 2 * 0.0254
 MAX_WHEEL_DELTA = 10
 
