@@ -1,4 +1,5 @@
 import os
+import sys
 from datalog import *
 import mmap
 from multiprocessing import Pool
@@ -6,7 +7,7 @@ import tqdm
 import json
 import math
 
-FOLDER = "../RobotCode2023/logs"
+FOLDER = ""
 WHEEL_RADIUS = 2 * 0.0254
 MAX_WHEEL_DELTA = 10
 
@@ -268,6 +269,8 @@ def get_stats(filename):
 
 if __name__ == "__main__":
     # Calculate stats for each log
+    if len(sys.argv) > 1:
+        FOLDER = sys.argv[1]
     all_logs = [x for x in os.listdir(FOLDER) if not x[0] == "."]
     pool = Pool()
     all_stats = list(tqdm.tqdm(pool.imap_unordered(get_stats, all_logs), total=len(all_logs)))
