@@ -20,7 +20,7 @@ def array_sum(array):
 
 
 def get_stats(filename):
-    with open(os.path.join(FOLDER, filename), "r") as f:
+    with open(filename, "r") as f:
         try:
             mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
         except:
@@ -271,7 +271,7 @@ if __name__ == "__main__":
     # Calculate stats for each log
     if len(sys.argv) > 1:
         FOLDER = sys.argv[1]
-    all_logs = [x for x in os.listdir(FOLDER) if not x[0] == "."]
+    all_logs = [os.path.join(FOLDER, x) for x in os.listdir(FOLDER) if not x[0] == "."]
     pool = Pool()
     all_stats = list(tqdm.tqdm(pool.imap_unordered(get_stats, all_logs), total=len(all_logs)))
     all_stats = sorted(all_stats, key=lambda x: x["filename"])
@@ -375,23 +375,24 @@ if __name__ == "__main__":
             stats_field_all["intake_rotations"] += stats["intake_rotations"]
 
     # Calculate match averages
-    stats_field_all["loop_cycles"] /= stats_match_count
-    stats_field_all["time_total"] /= stats_match_count
-    stats_field_all["time_teleop"] /= stats_match_count
-    stats_field_all["time_auto"] /= stats_match_count
-    for key in stats_field_all["subsystem_power"].keys():
-        stats_field_all["subsystem_power"][key] /= stats_match_count
-    for i in range(4):
-        stats_field_all["distance_meters"][i] /= stats_match_count
-        stats_field_all["distance_meters_auto"][i] /= stats_match_count
-    stats_field_all["distance_meters_avg"] /= stats_match_count
-    stats_field_all["distance_meters_auto_avg"] /= stats_match_count
-    stats_field_all["vision_frames"] /= stats_match_count
-    stats_field_all["arm_trajectories"] /= stats_match_count
-    stats_field_all["shoulder_rotations"] /= stats_match_count
-    stats_field_all["elbow_rotations"] /= stats_match_count
-    stats_field_all["wrist_rotations"] /= stats_match_count
-    stats_field_all["intake_rotations"] /= stats_match_count
+    if stats_match_count != 0:
+        stats_field_all["loop_cycles"] /= stats_match_count
+        stats_field_all["time_total"] /= stats_match_count
+        stats_field_all["time_teleop"] /= stats_match_count
+        stats_field_all["time_auto"] /= stats_match_count
+        for key in stats_field_all["subsystem_power"].keys():
+            stats_field_all["subsystem_power"][key] /= stats_match_count
+        for i in range(4):
+            stats_field_all["distance_meters"][i] /= stats_match_count
+            stats_field_all["distance_meters_auto"][i] /= stats_match_count
+        stats_field_all["distance_meters_avg"] /= stats_match_count
+        stats_field_all["distance_meters_auto_avg"] /= stats_match_count
+        stats_field_all["vision_frames"] /= stats_match_count
+        stats_field_all["arm_trajectories"] /= stats_match_count
+        stats_field_all["shoulder_rotations"] /= stats_match_count
+        stats_field_all["elbow_rotations"] /= stats_match_count
+        stats_field_all["wrist_rotations"] /= stats_match_count
+        stats_field_all["intake_rotations"] /= stats_match_count
 
     # Write CSV
     with open("results_matches.csv", "w") as csv:
