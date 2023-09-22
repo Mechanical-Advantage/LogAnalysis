@@ -71,39 +71,44 @@ if __name__ == "__main__":
                             continue
 
                         if entry.type == "double":
-                            print(f"  {record.getDouble()}")
-                            csv_writer.writerow(entry.name, entry.type, record.getDouble())
+                            value = record.getDouble()
+                            print(f"  {value}")
+                            csv_writer.writerow([entry.name, entry.type, value])
                         elif entry.type == "int64":
+                            value = record.getInteger()
                             print(f"  {record.getInteger()}")
-                            csv_writer.writerow(entry.name, entry.type, record.getInteger())
+                            csv_writer.writerow([entry.name, entry.type, value])
                         elif entry.type in ("string", "json"):
+                            value = record.getString()
                             print(f"  '{record.getString()}'")
-                            csv_writer.writerow(entry.name, entry.type, record.getString())
+                            csv_writer.writerow([entry.name, entry.type, value])
                         elif entry.type == "msgpack":
+                            value = record.getMsgPack()
                             print(f"  '{record.getMsgPack()}'")
-                            csv_writer.writerow(entry.name, entry.type, record.getMsgPack())
+                            csv_writer.writerow([entry.name, entry.type, value])
                         elif entry.type == "boolean":
+                            value = record.getBoolean()
                             print(f"  {record.getBoolean()}")
-                            csv_writer.writerow(entry.name, entry.type, record.getBoolean())
+                            csv_writer.writerow([entry.name, entry.type, value])
                         elif entry.type == "boolean[]":
                             arr = record.getBooleanArray()
-                            csv_writer.writerow(entry.name, entry.type, arr)
+                            csv_writer.writerow([entry.name, entry.type, arr])
                             print(f"  {arr}")
                         elif entry.type == "double[]":
                             arr = record.getDoubleArray()
-                            csv_writer.writerow(entry.name, entry.type, arr)
+                            csv_writer.writerow([entry.name, entry.type, arr])
                             print(f"  {arr}")
                         elif entry.type == "float[]":
                             arr = record.getFloatArray()
                             print(f"  {arr}")
-                            csv_writer.writerow(entry.name, entry.type, arr)
+                            csv_writer.writerow([entry.name, entry.type, arr])
                         elif entry.type == "int64[]":
                             arr = record.getIntegerArray()
                             print(f"  {arr}")
-                            csv_writer.writerow(entry.name, entry.type, arr)
+                            csv_writer.writerow([entry.name, entry.type, arr])
                         elif entry.type == "string[]":
                             arr = record.getStringArray()
                             print(f"  {arr}")
-                            csv_writer.writerow(entry.name, entry.type, arr)
+                            csv_writer.writerow([entry.name, entry.type, arr])
                     except TypeError as e:
                         print("  invalid")
