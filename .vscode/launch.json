@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",
-            "args": ["../robodatalogs"]
+            "args": ["../robodatalogs/Log_9d8f62f2e34a918e.wpilog"]
         }
     ]
 }

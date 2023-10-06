@@ -1,6 +1,8 @@
 import csv
 from datalog import DataLogReader
+import gzip
 
+SP = False # should print?
 
 if __name__ == "__main__":
     from datetime import datetime
@@ -19,7 +21,11 @@ if __name__ == "__main__":
             sys.exit(1)
 
         entries = {}
-        with open('logs.csv', 'w', newline='') as csvfile:
+        input_log = sys.argv[1]
+        pos = input_log.rfind(".")
+        global output_csv
+        output_csv = input_log[:pos] + ".csv"        
+        with open(output_csv, 'w+', newline='') as csvfile:
             csv_writer = csv.writer(csvfile, delimiter=',',
                                     quotechar='|', quoting=csv.QUOTE_MINIMAL)
             for record in reader:
@@ -27,11 +33,13 @@ if __name__ == "__main__":
                 if record.isStart():
                     try:
                         data = record.getStartData()
-                        print(
+                        if SP:
+                            print(
                             f"Start({data.entry}, name='{data.name}', type='{data.type}', metadata='{data.metadata}') [{timestamp}]"
                         )
                         if data.entry in entries:
-                            print("...DUPLICATE entry ID, overriding")
+                            if SP: 
+                                print("...DUPLICATE entry ID, overriding")
                         entries[data.entry] = data
                     except TypeError as e:
                         print("Start(INVALID)")
@@ -54,61 +62,81 @@ if __name__ == "__main__":
                     except TypeError as e:
                         print("SetMetadata(INVALID)")
                 elif record.isControl():
-                    print("Unrecognized control record")
+                        print("Unrecognized control record")
                 else:
-                    print(f"Data({record.entry}, size={len(record.data)}) ", end="")
+                    if SP:
+                        print(f"Data({record.entry}, size={len(record.data)}) ", end="")
                     entry = entries.get(record.entry)
                     if entry is None:
                         print("<ID not found>")
                         continue
-                    print(f"<name='{entry.name}', type='{entry.type}'> [{timestamp}]")
+                    if SP: print(f"<name='{entry.name}', type='{entry.type}'> [{timestamp}]")
 
                     try:
                         # handle systemTime specially
                         if entry.name == "systemTime" and entry.type == "int64":
                             dt = datetime.fromtimestamp(record.getInteger() / 1000000)
-                            print("  {:%Y-%m-%d %H:%M:%S.%f}".format(dt))
+                            if SP:
+                                print("  {:%Y-%m-%d %H:%M:%S.%f}".format(dt))
                             continue
 
                         if entry.type == "double":
                             value = record.getDouble()
-                            print(f"  {value}")
-                            csv_writer.writerow([entry.name, entry.type, value])
+                            if SP:
+                                print(f"  {value}")
+                            csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type == "int64":
                             value = record.getInteger()
-                            print(f"  {record.getInteger()}")
-                            csv_writer.writerow([entry.name, entry.type, value])
+                            if SP:
+                                print(f"  {record.getInteger()}")
+                            csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type in ("string", "json"):
                             value = record.getString()
-                            print(f"  '{record.getString()}'")
-                            csv_writer.writerow([entry.name, entry.type, value])
+                            if SP:
+                                print(f"  '{record.getString()}'")
+                            csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type == "msgpack":
                             value = record.getMsgPack()
-                            print(f"  '{record.getMsgPack()}'")
-                            csv_writer.writerow([entry.name, entry.type, value])
+                            if SP:
+                                print(f"  '{record.getMsgPack()}'")
+                            csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type == "boolean":
                             value = record.getBoolean()
-                            print(f"  {record.getBoolean()}")
-                            csv_writer.writerow([entry.name, entry.type, value])
+                            if SP:
+                                print(f"  {record.getBoolean()}")
+                            csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type == "boolean[]":
                             arr = record.getBooleanArray()
-                            csv_writer.writerow([entry.name, entry.type, arr])
-                            print(f"  {arr}")
+                            csv_writer.writerow([entry.name, entry.type, arr, record.timestamp])
+                            if SP:
+                                print(f"  {arr}")
                         elif entry.type == "double[]":
                             arr = record.getDoubleArray()
-                            csv_writer.writerow([entry.name, entry.type, arr])
-                            print(f"  {arr}")
+                            csv_writer.writerow([entry.name, entry.type, arr, record.timestamp])
+                            if SP:
+                                print(f"  {arr}")
                         elif entry.type == "float[]":
                             arr = record.getFloatArray()
-                            print(f"  {arr}")
-                            csv_writer.writerow([entry.name, entry.type, arr])
+                            if SP:
+                                print(f"  {arr}")
+                            csv_writer.writerow([entry.name, entry.type, arr, record.timestamp])
                         elif entry.type == "int64[]":
                             arr = record.getIntegerArray()
-                            print(f"  {arr}")
-                            csv_writer.writerow([entry.name, entry.type, arr])
+                            if SP:  
+                                print(f"  {arr}")
+                            csv_writer.writerow([entry.name, entry.type, arr, record.timestamp])
                         elif entry.type == "string[]":
                             arr = record.getStringArray()
-                            print(f"  {arr}")
-                            csv_writer.writerow([entry.name, entry.type, arr])
+                            if SP:
+                                print(f"  {arr}")
+                            csv_writer.writerow([entry.name, entry.type, arr, record.timestamp])
                     except TypeError as e:
                         print("  invalid")
+                    except UnicodeEncodeError:
+                        print(arr)
+                        print("   UnicodeEncodeError")
+
+    f_in = open(output_csv)
+    f_out = gzip.open(output_csv[:-3]+"gz", 'wb')
+    # TODO: Write csv to gzip file
+    print("--Complete--")
