@@ -4,3 +4,4 @@ numpy==1.24.1
 pyntcore==2023.*
 tqdm==4.66.1
 msgpack==1.0.5
+pandas==1.*
