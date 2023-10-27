@@ -137,6 +137,8 @@ if __name__ == "__main__":
                         print("   UnicodeEncodeError")
 
     f_in = open(output_csv)
-    f_out = gzip.open(output_csv[:-3]+"gz", 'wb')
-    # TODO: Write csv to gzip file
+    f_out = gzip.open(output_csv[:-3]+"gz", 'wt')
+    f_out.writelines(f_in)
+    f_out.close()
+    f_in.close()
     print("--Complete--")
