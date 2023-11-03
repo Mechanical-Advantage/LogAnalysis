@@ -92,8 +92,8 @@ if __name__ == "__main__":
                             csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type in ("string", "json"):
                             value = record.getString()
-                            if SP:
-                                print(f"  '{record.getString()}'")
+                            value = value.replace("\r", " ")
+                            value = value.replace("\n", " ")
                             csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type == "msgpack":
                             value = record.getMsgPack()
