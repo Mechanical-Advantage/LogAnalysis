@@ -1,13 +1,13 @@
 import csv
 from datalog import DataLogReader
 import gzip
+from datetime import datetime
+import mmap
+import sys
 
 SP = False # should print?
 
 if __name__ == "__main__":
-    from datetime import datetime
-    import mmap
-    import sys
 
     if len(sys.argv) != 2:
         print("Usage: csv_converter.py <file>", file=sys.stderr)
