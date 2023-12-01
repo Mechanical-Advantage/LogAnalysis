@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 import sys
+from sqlite3 import connect 
+
 
 if __name__ == "__main__":
 
@@ -33,3 +35,19 @@ if __name__ == "__main__":
     df_log_data['log_file_name'] = log_filename
 
     print(df_log_data)
+
+    conn = connect("log_db.db")
+    curr = conn.cursor()
+
+    curr.execute('CREATE TABLE IF NOT EXISTS log_metadata (LogFileName TEXT PRIMARY KEY, BuildDate TEXT, Robot TEXT, RuntimeType TEXT, GitBranch TEXT, ProjectName TEXT)')
+    conn.commit()
+
+    sql_query = pd.read_sql("SELECT * FROM log_metadata where LogFileName = '" + log_filename + "'", conn)
+    df_log_metadata_temp = pd.DataFrame(sql_query)
+    print(df_log_metadata_temp)
+
+    if df_log_metadata_temp.size == 0:
+        df_log_metadata.to_sql('log_metadata', conn, if_exists='append', index=False)
+        curr.execute('CREATE TABLE IF NOT EXISTS log_data (metric TEXT, data_type TEXT, value TEXT, timestamp INTEGER, boolean_value INTEGER, numeric_value REAL, log_file_name TEXT)')
+        conn.commit()
+        df_log_data.to_sql('log_data', conn, if_exists='append', index=False)
