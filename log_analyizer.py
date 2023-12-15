@@ -2,7 +2,7 @@ import os
 import pandas as pd
 import sys
 from sqlite3 import connect 
-
+import csv_converter 
 
 if __name__ == "__main__":
 
@@ -10,8 +10,13 @@ if __name__ == "__main__":
         print(f"Usage: {sys.argv[0]} <file>", file=sys.stderr)
         sys.exit(1)
 
+    csv_converter.csv_convert(sys.argv[1])
+    input_file = sys.argv[1]
+    pos = input_file.rfind(".")
+    output_csv = input_file[:pos] + ".gz" 
+
     colnames=['metric', 'data_type', 'value', 'timestamp']
-    df = pd.read_csv(sys.argv[1], quotechar='|', header=None, names=colnames)
+    df = pd.read_csv(output_csv, quotechar='|', header=None, names=colnames)
 
     build_date = df.loc[df['metric'] == '/RealMetadata/BuildDate', 'value'].values[0]
     robot = df.loc[df['metric'] == '/RealMetadata/Robot', 'value'].values[0]

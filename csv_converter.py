@@ -5,15 +5,8 @@ from datetime import datetime
 import mmap
 import sys
 
-SP = False # should print?
-
-if __name__ == "__main__":
-
-    if len(sys.argv) != 2:
-        print("Usage: csv_converter.py <file>", file=sys.stderr)
-        sys.exit(1)
-
-    with open(sys.argv[1], "r") as f:
+def csv_convert(file_name):
+     with open(file_name, "r") as f:
         mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
         reader = DataLogReader(mm)
         if not reader:
@@ -23,7 +16,6 @@ if __name__ == "__main__":
         entries = {}
         input_log = sys.argv[1]
         pos = input_log.rfind(".")
-        global output_csv
         output_csv = input_log[:pos] + ".csv"        
         with open(output_csv, 'w+', newline='') as csvfile:
             csv_writer = csv.writer(csvfile, delimiter=',',
@@ -33,13 +25,6 @@ if __name__ == "__main__":
                 if record.isStart():
                     try:
                         data = record.getStartData()
-                        if SP:
-                            print(
-                            f"Start({data.entry}, name='{data.name}', type='{data.type}', metadata='{data.metadata}') [{timestamp}]"
-                        )
-                        if data.entry in entries:
-                            if SP: 
-                                print("...DUPLICATE entry ID, overriding")
                         entries[data.entry] = data
                     except TypeError as e:
                         print("Start(INVALID)")
@@ -64,31 +49,21 @@ if __name__ == "__main__":
                 elif record.isControl():
                         print("Unrecognized control record")
                 else:
-                    if SP:
-                        print(f"Data({record.entry}, size={len(record.data)}) ", end="")
                     entry = entries.get(record.entry)
                     if entry is None:
                         print("<ID not found>")
                         continue
-                    if SP: print(f"<name='{entry.name}', type='{entry.type}'> [{timestamp}]")
-
                     try:
                         # handle systemTime specially
                         if entry.name == "systemTime" and entry.type == "int64":
                             dt = datetime.fromtimestamp(record.getInteger() / 1000000)
-                            if SP:
-                                print("  {:%Y-%m-%d %H:%M:%S.%f}".format(dt))
                             continue
 
                         if entry.type == "double":
                             value = record.getDouble()
-                            if SP:
-                                print(f"  {value}")
                             csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type == "int64":
                             value = record.getInteger()
-                            if SP:
-                                print(f"  {record.getInteger()}")
                             csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type in ("string", "json"):
                             value = record.getString()
@@ -97,38 +72,24 @@ if __name__ == "__main__":
                             csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type == "msgpack":
                             value = record.getMsgPack()
-                            if SP:
-                                print(f"  '{record.getMsgPack()}'")
                             csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type == "boolean":
                             value = record.getBoolean()
-                            if SP:
-                                print(f"  {record.getBoolean()}")
                             csv_writer.writerow([entry.name, entry.type, value, record.timestamp])
                         elif entry.type == "boolean[]":
                             arr = record.getBooleanArray()
                             csv_writer.writerow([entry.name, entry.type, arr, record.timestamp])
-                            if SP:
-                                print(f"  {arr}")
                         elif entry.type == "double[]":
                             arr = record.getDoubleArray()
                             csv_writer.writerow([entry.name, entry.type, arr, record.timestamp])
-                            if SP:
-                                print(f"  {arr}")
                         elif entry.type == "float[]":
                             arr = record.getFloatArray()
-                            if SP:
-                                print(f"  {arr}")
                             csv_writer.writerow([entry.name, entry.type, arr, record.timestamp])
                         elif entry.type == "int64[]":
                             arr = record.getIntegerArray()
-                            if SP:  
-                                print(f"  {arr}")
                             csv_writer.writerow([entry.name, entry.type, arr, record.timestamp])
                         elif entry.type == "string[]":
                             arr = record.getStringArray()
-                            if SP:
-                                print(f"  {arr}")
                             csv_writer.writerow([entry.name, entry.type, arr, record.timestamp])
                     except TypeError as e:
                         print("  invalid")
@@ -136,9 +97,17 @@ if __name__ == "__main__":
                         print(arr)
                         print("   UnicodeEncodeError")
 
-    f_in = open(output_csv)
-    f_out = gzip.open(output_csv[:-3]+"gz", 'wt')
-    f_out.writelines(f_in)
-    f_out.close()
-    f_in.close()
-    print("--Complete--")
+        f_in = open(output_csv)
+        f_out = gzip.open(output_csv[:-3]+"gz", 'wt')
+        f_out.writelines(f_in)
+        f_out.close()
+        f_in.close()
+        print("--Complete--")
+
+if __name__ == "__main__":
+
+    if len(sys.argv) != 2:
+        print("Usage: csv_converter.py <file>", file=sys.stderr)
+        sys.exit(1)
+
+    csv_convert(sys.argv[1])
